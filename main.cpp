@@ -1,4 +1,4 @@
-#include "mysm3.h"
+#include "fast_sm3.h"
 #include<time.h>
 #include <string>
 
@@ -22,7 +22,7 @@ void timetest()
     cout << "For 64 byte data, doing " << t << " times SM3 costs time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;  //输出时间（单位：ｓ）
     cout << "Average do " << t / (double(end - start) / CLOCKS_PER_SEC) << " times SM3 in 1s" << endl;
 #endif // VS
-#ifndef VS      //VS的中文编码问题，VScode中是UTF-8，VS是GBK，不好调整
+#ifndef VS     
     cout << "对64字节的数据做" << t << "次SM3，花费时间：time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;  //输出时间（单位：ｓ）
     cout << "平均每秒做" << t / (double(end - start) / CLOCKS_PER_SEC) << "次SM3" << endl;
 #endif // !VS
