@@ -1,16 +1,4 @@
-/************************************************************************
- 文件名: mysm3.cpp
- 日期：2022/7/2 
- 描述：文件包含SM3压缩的过程，最终可以得到压缩值
- 函数列表: 
-    1. SM3_init         //初始化
-    2. SM3_process      //处理输入，对每个64字节的block进行压缩
-    3. SM3_paddingpart  //处理最后一块不足64字节大的block
-    4. SM3_compress     //对一个block进行压缩处理
-    5. CF               //CF函数，详见SM3标准
-    6. SM3_W_expend     //消息拓展
-**************************************************************************/
-#include "mysm3.h"
+#include "fast_sm3.h"
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
@@ -49,14 +37,7 @@ void SM3_W_expend(unsigned int W[68],unsigned int W1[64],const uchar* buf)
     }
 }
 
-/************************************************************************
- 函数名:   SM3_cpmpress 
- 描述：    对传入的block进行压缩，主要调用消息拓展和CF函数
- Input：   ctx
- call:      SM3_W_expend,CF
- caller:    SM3_process,SM3_paddingpart
 
-**************************************************************************/
 void SM3_compress(SM3_CTX* ctx)
 {
     /*
@@ -69,14 +50,7 @@ void SM3_compress(SM3_CTX* ctx)
     CF(W,W1,ctx->state);
 }
 
-/************************************************************************
- 函数名:   CF 
- 描述：    对64byte的大端序数据进行压缩，得到传入block的压缩值，更新到ctx->state中
- Input：   扩展后的消息W[68]和W1[64]，上一个block的压缩值V[8],注意数据类型都是int
- caller：   SM3_compress
- call:      mysm3.h中定义的宏函数
 
-**************************************************************************/
 void CF(unsigned int W[68], unsigned int W1[64], unsigned int V[])
 {
     unsigned int SS1;
@@ -154,14 +128,7 @@ void CF(unsigned int W[68], unsigned int W1[64], unsigned int V[])
     V[7] ^=H;
 }
 
-/************************************************************************
- 函数名:    SM3_process 
- 描述：     处理input的前几个block，并将最后一个不满64byte的block预处理一下
- Input：    ctx,input,msg_bytelen
- caller：   SM3
- call:      SM3_compress
 
-**************************************************************************/
 void SM3_process(SM3_CTX* ctx,uchar* input,int msg_bytelen)
 {
     while(msg_bytelen>=64)
@@ -184,14 +151,7 @@ void SM3_process(SM3_CTX* ctx,uchar* input,int msg_bytelen)
     ctx->curlen = tmp ;        
 }
 
-/************************************************************************
- 函数名:   SM3_paddingpart 
- 描述：    处理最后一个不满64byte的数据块，主要是填充后进行压缩,并将最终结果正确拷贝到output
- Input：   ctx,output
- caller：   SM3_process
- call:      SM3_compress
 
-**************************************************************************/
 void SM3_paddingpart(SM3_CTX* ctx,uchar* output)
 {
     ctx->buf[ctx->curlen] = 0x80;
@@ -220,13 +180,6 @@ void SM3_paddingpart(SM3_CTX* ctx,uchar* output)
         (void)HOST_l2c(ctx->state[i],output);   //利用宏函数，将大端序储存在内存的每个int数据倒序存放，这样才能读出正确顺序的char
 }
 
-
-/************************************************************************
- 函数名:   SM3
- 描述：    顶层函数，计算传入的input的SM3值并储存到output中
- Input：   input,msg_bytelen,output
-
-**************************************************************************/
 void SM3(uchar* input, int msg_bytelen, uchar output[SM3_OUTLEN])
 {
     SM3_CTX ctx;
